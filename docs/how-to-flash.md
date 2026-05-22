@@ -3,6 +3,7 @@
 ## Requirements
 
 - Anycubic ACE Gen 1 connected to your Kobra printer
+- Printer must be in **LAN mode** (not connected to Anycubic cloud)
 - Printer and PC on the same local network
 - ACE Flash Tool (see README)
 

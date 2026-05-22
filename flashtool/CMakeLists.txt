@@ -69,8 +69,23 @@ if(WIN32)
     find_program(WINDEPLOYQT windeployqt HINTS "${_qt_bin}")
     if(WINDEPLOYQT)
         add_custom_command(TARGET AceFlashTool POST_BUILD
-            COMMAND "${WINDEPLOYQT}" $<TARGET_FILE:AceFlashTool>
+            COMMAND "${WINDEPLOYQT}"
+                --no-translations
+                --no-opengl-sw
+                --no-angle
+                $<TARGET_FILE:AceFlashTool>
             COMMENT "Deploying Qt DLLs"
+        )
+        # Remove files not needed for this app
+        add_custom_command(TARGET AceFlashTool POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:AceFlashTool>/imageformats"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:AceFlashTool>/translations"
+            COMMAND ${CMAKE_COMMAND} -E remove -f
+                "$<TARGET_FILE_DIR:AceFlashTool>/opengl32sw.dll"
+                "$<TARGET_FILE_DIR:AceFlashTool>/libGLESv2.dll"
+                "$<TARGET_FILE_DIR:AceFlashTool>/libEGL.dll"
+                "$<TARGET_FILE_DIR:AceFlashTool>/D3Dcompiler_47.dll"
+            COMMENT "Removing unused OpenGL/ANGLE/imageformats/translations"
         )
     endif()
 endif()

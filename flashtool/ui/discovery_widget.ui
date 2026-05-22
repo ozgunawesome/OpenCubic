@@ -14,7 +14,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Drucker-IP:</string>
+      <string>Printer IP:</string>
      </property>
     </widget>
    </item>

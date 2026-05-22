@@ -71,6 +71,23 @@ void FlashWidget::setState(State s)
     updateFlashButton();
 }
 
+void FlashWidget::updateAceIdSpinner()
+{
+    // Max is constrained by firmware type if an ACE firmware is loaded
+    int maxByFw = (m_fw.target == FlashTarget::AceGen1) ? 1 : 3;
+
+    // Show spinner only when multiple ACEs are actually connected.
+    // Before test (m_aceCount == 0): hide — no information yet.
+    bool show  = (m_aceCount > 1);
+    int  maxId = (m_aceCount > 1) ? qMin(maxByFw, m_aceCount - 1) : maxByFw;
+
+    ui->spinAceId->setMaximum(maxId);
+    if (ui->spinAceId->value() > maxId)
+        ui->spinAceId->setValue(maxId);
+    ui->spinAceId->setVisible(show);
+    ui->labelAceIdLbl->setVisible(show);
+}
+
 void FlashWidget::updateFlashButton()
 {
     // AVATA stack = ACE Gen 2 only — no CFW available, block all flashing
@@ -106,6 +123,8 @@ void FlashWidget::startTest(const PrinterCredentials& creds)
     m_testTimer.stop();
     m_gotAceInfo      = false;
     m_printerFree     = true;
+    m_aceCount        = 0;
+    updateAceIdSpinner();
 
     ui->logView->clear();
     ui->labelPrinter->setText(QStringLiteral("%1  (%2)  [%3]")
@@ -216,6 +235,7 @@ void FlashWidget::onMqttMessage(const QString& topic, const QByteArray& payload)
             auto boxes = dat[QStringLiteral("multi_color_box")].toArray();
             log(QStringLiteral("  ACE Units    : %1").arg(boxes.size()));
             m_gotAceInfo = true;
+            m_aceCount   = boxes.size();
             for (int bi = 0; bi < boxes.size(); ++bi) {
                 QJsonObject aceBox = boxes[bi].toObject();
                 log(QStringLiteral("    ACE%1  status=%2  temp=%3 C")
@@ -263,6 +283,7 @@ void FlashWidget::tryFinishTest()
 {
     if (!m_gotAceInfo) return;
     m_testTimer.stop();
+    updateAceIdSpinner();
     log(QStringLiteral("-- Test OK - Connection remains active ---"));
     emit statusUpdate(QStringLiteral("OK  %1  connected").arg(m_creds.modelName));
     setState(State::Ready);
@@ -298,13 +319,7 @@ void FlashWidget::onBrowseClicked()
 
     m_fw = FirmwareFile::load(path);
     ui->labelFile->setText(m_fw.name);
-
-    bool isAce = (m_fw.target == FlashTarget::AceGen1 || m_fw.target == FlashTarget::AceGen2);
-    ui->spinAceId->setVisible(isAce);
-    ui->labelAceIdLbl->setVisible(isAce);
-    if (m_fw.target == FlashTarget::AceGen1) ui->spinAceId->setMaximum(1);
-    else if (m_fw.target == FlashTarget::AceGen2) ui->spinAceId->setMaximum(3);
-
+    updateAceIdSpinner();
     updateFlashButton();
 }
 

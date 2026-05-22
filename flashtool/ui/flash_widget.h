@@ -41,6 +41,7 @@ private:
 
     // Flash
     void updateFlashButton();
+    void updateAceIdSpinner();
     void flashDone(bool success);
 
 public slots:
@@ -65,6 +66,7 @@ private:
     State   m_state       = State::Idle;
     bool    m_gotAceInfo  = false;
     bool    m_printerFree = true;
+    int     m_aceCount    = 0;
     QTimer  m_testTimer;
 
     // Flash state
