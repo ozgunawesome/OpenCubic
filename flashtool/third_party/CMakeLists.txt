@@ -16,8 +16,8 @@ if(NOT EXISTS "${QMQTT_DIR}/src/mqtt")
 endif()
 
 file(GLOB QMQTT_SOURCES "${QMQTT_DIR}/src/mqtt/*.cpp")
-# Headers müssen explizit als Sources eingetragen werden, damit AUTOMOC
-# MOC-Dateien für die abstract-only-Q_OBJECT-Klassen (NetworkInterface etc.) erzeugt.
+# Headers must be listed explicitly as sources so AUTOMOC generates MOC files
+# for abstract-only Q_OBJECT classes (NetworkInterface etc.)
 file(GLOB QMQTT_HEADERS "${QMQTT_DIR}/src/mqtt/*.h")
 
 add_library(qmqtt STATIC ${QMQTT_SOURCES} ${QMQTT_HEADERS})

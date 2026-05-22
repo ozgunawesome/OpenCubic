@@ -29,7 +29,7 @@ QByteArray PrinterAppTarget::buildPayload(const FirmwareFile& fw,
                                            qint64         containerSize,
                                            const QString& containerMd5) const
 {
-    // Versionsstring aus .swu-Dateiname extrahieren (best-effort)
+    // Extract version string from .swu filename (best-effort)
     static const QRegularExpression re(QStringLiteral(R"(_(V[\d.]+)_)"));
     auto m = re.match(fw.name);
     QString version = m.hasMatch() ? m.captured(1) : QStringLiteral("V1.0.0");

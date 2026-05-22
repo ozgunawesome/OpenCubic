@@ -5,12 +5,14 @@
 - Anycubic ACE Gen 1 connected to your Kobra printer
 - Printer must be in **LAN mode** (not connected to Anycubic cloud)
 - Printer and PC on the same local network
-- ACE Flash Tool (see README)
+- ACE Flash Tool — download the pre-built Windows binary from
+  [Releases](https://github.com/Jupsi/OpenCubic/releases), or
+  [build from source](../README.md#build-the-flash-tool) (Qt 5.15+, CMake 3.20+, MSVC)
 
 ## Steps
 
-1. Download the latest .bin from [Releases](https://github.com/Jupsi/OpenCubic/releases)
-2. Open the ACE Flash Tool
+1. Download the latest `.bin` from [Releases](https://github.com/Jupsi/OpenCubic/releases)
+2. Open `AceFlashTool.exe`
 3. Enter your printer's IP address
 4. Click **Test Connection** and wait until the log shows `Test OK - Connection remains active`
 5. Select the .bin file

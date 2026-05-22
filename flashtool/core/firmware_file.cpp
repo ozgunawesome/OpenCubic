@@ -17,7 +17,7 @@ FirmwareFile FirmwareFile::load(const QString& path)
     fw.size = data.size();
     fw.md5  = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
 
-    // Dateiname-Regex → FlashTarget
+    // Filename regex → FlashTarget
     // ACE_V\d+..._\d+.bin  → AceGen1
     // ACE2_V\d+..._\d+.bin → AceGen2
     // *.swu                 → PrinterApp

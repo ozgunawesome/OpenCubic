@@ -115,7 +115,7 @@ void Discovery::discover(const QString& ip)
         reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             emit httpLog(QStringLiteral("<< ERR %1").arg(reply->errorString()));
-            emit error(QStringLiteral("GET /info fehlgeschlagen: ") + reply->errorString());
+            emit error(QStringLiteral("GET /info failed: ") + reply->errorString());
             return;
         }
         QByteArray body = reply->readAll();
