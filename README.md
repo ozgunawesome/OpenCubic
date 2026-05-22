@@ -34,6 +34,10 @@ You can restore them at any time using the same flash tool.
 - **Multi-vendor NFC** — reads filament spools from multiple brands automatically
 - **Improved NFC reliability** — RxGain +15 dB, chip-type-aware stop strategy
 
+| ACE with Bambu & Anycubic spools | Slicer showing recognized spools |
+|:---:|:---:|
+| ![ACE Loaded](images/ACE_Loaded.jpg) | ![Slicer Loaded](images/Slicer_Loaded.jpg) |
+
 ### Supported NFC Spools
 
 Full details: [docs/supported-spools.md](docs/supported-spools.md)
