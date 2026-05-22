@@ -14,3 +14,9 @@ A: Update to v1.3.863 or later — color byte order was fixed in this release.
 
 **Q: Can I go back to the original firmware?**  
 A: Yes. Flash the original Anycubic firmware using the same flash tool.
+
+**Q: My printer shows as "unknown" in the Flash Tool**  
+A: The printer type is detected by model ID. Not all model IDs are mapped yet, as printer
+configuration files are not publicly available for every model. If you know the model ID of
+your printer, please open an issue with the model ID and printer name, or submit a pull request
+with the correct mapping in `firmware_packager.cpp`.
