@@ -1,0 +1,34 @@
+# qmqtt — lightweight Qt MQTT client (MIT)
+#
+# Before first cmake configure, clone into this directory:
+#   git clone https://github.com/emqx/qmqtt qmqtt
+# or add as submodule from the project root:
+#   git submodule add https://github.com/emqx/qmqtt third_party/qmqtt
+
+set(QMQTT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/qmqtt")
+
+if(NOT EXISTS "${QMQTT_DIR}/src/mqtt")
+    message(FATAL_ERROR
+        "\nqmqtt not found. From the project root run:\n"
+        "  git clone https://github.com/emqx/qmqtt third_party/qmqtt\n"
+        "Then re-run cmake.\n"
+    )
+endif()
+
+file(GLOB QMQTT_SOURCES "${QMQTT_DIR}/src/mqtt/*.cpp")
+# Headers müssen explizit als Sources eingetragen werden, damit AUTOMOC
+# MOC-Dateien für die abstract-only-Q_OBJECT-Klassen (NetworkInterface etc.) erzeugt.
+file(GLOB QMQTT_HEADERS "${QMQTT_DIR}/src/mqtt/*.h")
+
+add_library(qmqtt STATIC ${QMQTT_SOURCES} ${QMQTT_HEADERS})
+
+target_compile_definitions(qmqtt PUBLIC MQTT_PROJECT_INCLUDE_SRC)
+
+target_include_directories(qmqtt PUBLIC "${QMQTT_DIR}/src/mqtt")
+
+target_link_libraries(qmqtt PUBLIC
+    Qt5::Core
+    Qt5::Network
+)
+
+set_target_properties(qmqtt PROPERTIES AUTOMOC ON)

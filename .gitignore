@@ -1,0 +1,7 @@
+flashtool/build/
+flashtool/third_party/qmqtt/
+*.bin
+!originalFirmware/*.bin
+*.elf
+*.hex
+.vscode/settings.json

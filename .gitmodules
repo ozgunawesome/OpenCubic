@@ -1,0 +1,3 @@
+[submodule "flashtool/third_party/qmqtt"]
+	path = flashtool/third_party/qmqtt
+	url = https://github.com/emqx/qmqtt

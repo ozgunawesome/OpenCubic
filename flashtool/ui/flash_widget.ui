@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FlashWidget</class>
+ <widget class="QWidget" name="FlashWidget">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>700</width><height>460</height></rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <!-- Drucker-Status -->
+   <item>
+    <layout class="QHBoxLayout">
+     <item><widget class="QLabel" name="labelPrinterLbl"><property name="text"><string>Drucker:</string></property></widget></item>
+     <item><widget class="QLabel" name="labelPrinter"><property name="text"><string>-</string></property></widget></item>
+     <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+    </layout>
+   </item>
+   <!-- Datei-Auswahl -->
+   <item>
+    <layout class="QHBoxLayout">
+     <item><widget class="QLabel" name="labelFile"><property name="text"><string>Keine Datei</string></property></widget></item>
+     <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+     <item><widget class="QPushButton" name="btnBrowse"><property name="text"><string>Datei waehlen...</string></property></widget></item>
+    </layout>
+   </item>
+   <!-- ACE-ID + Flash -->
+   <item>
+    <layout class="QHBoxLayout">
+     <item><widget class="QLabel" name="labelAceIdLbl"><property name="text"><string>ACE-ID:</string></property></widget></item>
+     <item>
+      <widget class="QSpinBox" name="spinAceId">
+       <property name="minimum"><number>0</number></property>
+       <property name="maximum"><number>3</number></property>
+       <property name="maximumWidth"><number>60</number></property>
+      </widget>
+     </item>
+     <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+     <item>
+      <widget class="QPushButton" name="btnFlash">
+       <property name="text"><string>Flash</string></property>
+       <property name="enabled"><bool>false</bool></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <!-- Fortschritt -->
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value"><number>0</number></property>
+    </widget>
+   </item>
+   <!-- Tab-Log -->
+   <item>
+    <widget class="QTabWidget" name="tabLog">
+     <property name="currentIndex"><number>0</number></property>
+     <!-- Tab 1: Allgemein + Flash -->
+     <widget class="QWidget" name="tabGeneral">
+      <attribute name="title"><string>Flash-Log</string></attribute>
+      <layout class="QVBoxLayout">
+       <item>
+        <widget class="QPlainTextEdit" name="logView">
+         <property name="readOnly"><bool>true</bool></property>
+         <property name="placeholderText"><string>Flash-Log...</string></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab 2: HTTP -->
+     <widget class="QWidget" name="tabHttp">
+      <attribute name="title"><string>HTTP</string></attribute>
+      <layout class="QVBoxLayout">
+       <item>
+        <widget class="QPlainTextEdit" name="logHttp">
+         <property name="readOnly"><bool>true</bool></property>
+         <property name="placeholderText"><string>HTTP Discovery Log...</string></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <!-- Tab 3: MQTT -->
+     <widget class="QWidget" name="tabMqtt">
+      <attribute name="title"><string>MQTT</string></attribute>
+      <layout class="QVBoxLayout">
+       <item>
+        <widget class="QPlainTextEdit" name="logMqtt">
+         <property name="readOnly"><bool>true</bool></property>
+         <property name="placeholderText"><string>MQTT Log...</string></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
