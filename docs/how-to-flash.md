@@ -20,7 +20,15 @@
 
 The ACE will reboot automatically after flashing (~30 seconds).
 
-## Recovery (SWD)
+## Recovery
 
-If the ACE doesn't respond after a bad flash, it can be recovered via SWD using a GD-Link adapter.
-See your Kobra printer's documentation for the SWD pinout on the ACE board.
+### Flash Tool Recovery (recommended)
+
+In most cases a bad flash can be recovered using the same flash tool. Flash the original
+Anycubic firmware from the [`originalFirmware/`](../originalFirmware/) folder — as long as
+the ACE bootloader is still intact, this will restore the unit to a working state.
+
+### SWD Recovery (last resort)
+
+If the ACE no longer responds to the flash tool at all, it can be recovered via SWD using a
+GD-Link adapter. See your Kobra printer's documentation for the SWD pinout on the ACE board.
