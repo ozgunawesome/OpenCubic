@@ -90,10 +90,9 @@ void FlashWidget::updateAceIdSpinner()
 
 void FlashWidget::updateFlashButton()
 {
-    // LOCAL CFW TEST BUILD — do not commit/push.
-    // A Gen 2 CFW now exists, so AVATA (ACE Gen 2) flashing is allowed when the
-    // selected image is an ACE2_V... (AceGen2) file. Only block real stack/gen
-    // mismatches that would soft-brick the unit.
+    // Both ACE generations are supported. Enable flashing unless the image and the
+    // detected printer stack are a generation mismatch that would soft-brick the unit
+    // (AVATA stack expects an ACE2_V... Gen 2 image; KlipperGo expects an ACE_V... Gen 1 image).
     const bool mismatch =
         (m_creds.stack() == PrinterStack::Avata     && m_fw.target == FlashTarget::AceGen1) ||
         (m_creds.stack() == PrinterStack::KlipperGo  && m_fw.target == FlashTarget::AceGen2);
@@ -135,9 +134,9 @@ void FlashWidget::startTest(const PrinterCredentials& creds)
              creds.stack() == PrinterStack::KlipperGo ? "klipper-go" : "avata"));
 
     if (creds.stack() == PrinterStack::Avata) {
-        // LOCAL CFW TEST BUILD — do not commit/push.
+        // AVATA stack = ACE Gen 2 — only ACE2_V... images are valid here.
         log(QStringLiteral("AVATA stack detected — ACE Gen 2. Select an ACE2_V... (Gen 2) CFW image."));
-        log(QStringLiteral("NOTE: local Gen 2 CFW test build — do NOT flash an ACE_V... (Gen 1) image here."));
+        log(QStringLiteral("Do NOT flash an ACE_V... (Gen 1) image on this printer."));
     }
 
     setState(State::Testing);
@@ -332,8 +331,7 @@ void FlashWidget::onFlashClicked()
 {
     if (m_state != State::Ready) return;
 
-    // Safety guard (LOCAL CFW TEST BUILD — do not commit/push):
-    // block only stack/generation mismatches. AVATA + ACE2_V (Gen 2) is allowed.
+    // Safety guard: block only stack/generation mismatches (each generation flashes its own image).
     const bool mismatch =
         (m_creds.stack() == PrinterStack::Avata     && m_fw.target == FlashTarget::AceGen1) ||
         (m_creds.stack() == PrinterStack::KlipperGo  && m_fw.target == FlashTarget::AceGen2);
