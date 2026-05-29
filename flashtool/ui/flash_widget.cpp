@@ -90,13 +90,16 @@ void FlashWidget::updateAceIdSpinner()
 
 void FlashWidget::updateFlashButton()
 {
-    // AVATA stack = ACE Gen 2 only — no CFW available, block all flashing
-    if (m_creds.stack() == PrinterStack::Avata) {
-        ui->btnFlash->setEnabled(false);
-        return;
-    }
+    // LOCAL CFW TEST BUILD — do not commit/push.
+    // A Gen 2 CFW now exists, so AVATA (ACE Gen 2) flashing is allowed when the
+    // selected image is an ACE2_V... (AceGen2) file. Only block real stack/gen
+    // mismatches that would soft-brick the unit.
+    const bool mismatch =
+        (m_creds.stack() == PrinterStack::Avata     && m_fw.target == FlashTarget::AceGen1) ||
+        (m_creds.stack() == PrinterStack::KlipperGo  && m_fw.target == FlashTarget::AceGen2);
     ui->btnFlash->setEnabled(
         m_fw.isValid()
+        && !mismatch
         && m_state == State::Ready
         && m_printerFree);
 }
@@ -132,9 +135,9 @@ void FlashWidget::startTest(const PrinterCredentials& creds)
              creds.stack() == PrinterStack::KlipperGo ? "klipper-go" : "avata"));
 
     if (creds.stack() == PrinterStack::Avata) {
-        log(QStringLiteral("WARNING: AVATA stack detected — this printer uses ACE Gen 2 only."));
-        log(QStringLiteral("Flashing is DISABLED. OpenCubic CFW supports ACE Gen 1 (KlipperGo stack) only."));
-        log(QStringLiteral("Flashing CFW onto ACE Gen 2 will soft-brick the unit."));
+        // LOCAL CFW TEST BUILD — do not commit/push.
+        log(QStringLiteral("AVATA stack detected — ACE Gen 2. Select an ACE2_V... (Gen 2) CFW image."));
+        log(QStringLiteral("NOTE: local Gen 2 CFW test build — do NOT flash an ACE_V... (Gen 1) image here."));
     }
 
     setState(State::Testing);
@@ -329,12 +332,16 @@ void FlashWidget::onFlashClicked()
 {
     if (m_state != State::Ready) return;
 
-    // Safety guard — must never flash CFW onto AVATA stack (ACE Gen 2 soft-brick)
-    if (m_creds.stack() == PrinterStack::Avata) {
+    // Safety guard (LOCAL CFW TEST BUILD — do not commit/push):
+    // block only stack/generation mismatches. AVATA + ACE2_V (Gen 2) is allowed.
+    const bool mismatch =
+        (m_creds.stack() == PrinterStack::Avata     && m_fw.target == FlashTarget::AceGen1) ||
+        (m_creds.stack() == PrinterStack::KlipperGo  && m_fw.target == FlashTarget::AceGen2);
+    if (mismatch) {
         QMessageBox::critical(this, QStringLiteral("Error"),
-            QStringLiteral("Flashing is not supported for AVATA stack printers.\n"
-                           "OpenCubic CFW is for ACE Gen 1 only.\n"
-                           "Applying it to ACE Gen 2 will soft-brick the unit."));
+            QStringLiteral("Firmware / printer mismatch — flashing blocked to prevent soft-brick.\n"
+                           "AVATA stack (ACE Gen 2) needs an ACE2_V... image;\n"
+                           "KlipperGo stack (ACE Gen 1) needs an ACE_V... image."));
         return;
     }
 

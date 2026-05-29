@@ -1,38 +1,47 @@
-# OpenCubic — ACE Gen 1 Custom Firmware
+# OpenCubic — ACE Custom Firmware (Gen 1 + Gen 2)
 
-Custom firmware (CFW) for the **Anycubic ACE Gen 1** filament management system (GD32F303, FreeRTOS).
+Custom firmware (CFW) for the Anycubic **ACE 1 Pro** (Gen 1) and **ACE 2 Pro** (Gen 2) filament
+management systems (GD32F303, FreeRTOS).
 
 > **Download the latest firmware:** See [Releases](https://github.com/Jupsi/OpenCubic/releases)  
-> Latest: **CFW v1.0** (based on official v1.3.863)
+> Latest: **ACE 2 Pro CFW v1.0.4** · **ACE 1 Pro CFW v1.0** · **ACE Flash Tool v1.0.1**
 
 ---
 
 ## ⚠️ Warnings
 
-### DO NOT flash onto ACE Gen 2
+### Use the firmware that matches your ACE generation
 
-**This firmware is for ACE Gen 1 only.**  
-Flashing it onto an ACE Gen 2 unit **will soft-brick the device**. The printer does not prevent you from doing this, so it is your responsibility to check which ACE generation you own before flashing.
+Each generation has its own firmware:
 
-Whether a soft-bricked ACE Gen 2 can be recovered without a hardware flash programmer is unknown.
+- **ACE 1 Pro (Gen 1):** `ACE_V…_….bin` — KlipperGo-stack printers (e.g. Kobra 3, Kobra S1)
+- **ACE 2 Pro (Gen 2):** `ACE2_V…_….bin` — AVATA-stack printers (e.g. Kobra X)
 
-The flash tool blocks flashing when an AVATA-stack printer (Kobra X, Kobra 4) is connected, as those printers only support ACE Gen 2 units. This is an additional safeguard, not a substitute for checking your hardware.
+Flashing the **wrong generation's** firmware onto an ACE **will soft-brick the device**. The Flash
+Tool blocks obvious mismatches (a `ACE_V…` Gen 1 image on an AVATA printer, or an `ACE2_V…` Gen 2
+image on a KlipperGo printer), but this is a safeguard — **it remains your responsibility to check
+which ACE you own and pick the matching `.bin`.**
+
+> Recovery without a hardware flash programmer is normally possible: an OTA flash never overwrites the
+> bootloader, so a unit that fails to boot falls back to update mode and can be re-flashed over the
+> network. See [docs/how-to-flash.md](docs/how-to-flash.md#recovery).
 
 ### Use at your own risk
 
-Flashing custom firmware modifies your device. **I take no responsibility for any damage, data loss, or malfunction** resulting from using this firmware or flash tool. You flash at your own risk.
+Flashing custom firmware modifies your device. **I take no responsibility for any damage, data loss,
+or malfunction** resulting from using this firmware or flash tool. You flash at your own risk.
 
 ### Restoring original firmware
 
-The original Anycubic ACE firmware binaries are stored in [`originalFirmware/`](originalFirmware/).  
-You can restore them at any time using the same flash tool.
+The original Anycubic ACE firmware binaries are stored in [`originalFirmware/`](originalFirmware/)
+(Gen 1 and Gen 2). You can restore them at any time using the same flash tool.
 
 ---
 
 ## Features
 
-- **Multi-vendor NFC** — reads filament spools from multiple brands automatically
-- **Improved NFC reliability** — RxGain +15 dB, chip-type-aware stop strategy
+- **Multi-vendor NFC** — reads filament spools from multiple brands automatically (same on both generations)
+- **Improved NFC reliability** — maximum RX gain + TX power, chip-type-aware reads
 
 | ACE with Bambu & Anycubic spools | Slicer showing recognized spools |
 |:---:|:---:|
@@ -58,7 +67,8 @@ Full details: [docs/supported-spools.md](docs/supported-spools.md)
 
 ## Flash Tool
 
-This repo contains the **ACE Flash Tool** — a Qt desktop application to flash the firmware over your local network (MQTT via your Kobra printer).
+This repo contains the **ACE Flash Tool** — a Qt desktop application that flashes the firmware over
+your local network (MQTT via your printer), for both ACE generations.
 
 → See [docs/how-to-flash.md](docs/how-to-flash.md)
 

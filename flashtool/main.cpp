@@ -5,7 +5,7 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationName("ACE Flash Tool");
-    app.setApplicationVersion("0.1.0");
+    app.setApplicationVersion("1.0.1");
     app.setOrganizationName("anycubic-cfw");
 
     MainWindow w;
