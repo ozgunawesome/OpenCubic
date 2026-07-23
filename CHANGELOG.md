@@ -54,6 +54,28 @@ filament systems (ACE 1 Pro and ACE 2 Pro).
 
 ## CFW — ACE 1 Pro
 
+### v1.1 — 2026-07-23
+
+> Based on official Anycubic ACE firmware **v1.3.863**
+
+#### Added
+- **TigerTag support — now verified on real hardware**: parser rewritten against the official
+  TigerTag spec (TigerTag-RFID-Guide): correct magic values, big-endian field layout, material/brand
+  ID lookup. Material, color, weight, nozzle/bed temperatures and drying parameters all decode
+  correctly (verified with a Jayo PLA+ Maker tag).
+- Debug firmware variant with NFC traces on a second USB serial port (raw tag hex dump, per-parser
+  match trace) — useful when reporting unrecognized spools.
+
+#### Fixed
+- Third-party NTAG spools (TigerTag, OpenSpool, …) were unreadable: the reader authenticated with
+  the Anycubic password first, which silences unprotected foreign tags (NAK → IDLE state). Tags are
+  now read without authentication first; the Anycubic passwords are only tried as a fallback. This
+  also stops hammering foreign tags with wrong passwords (AUTHLIM lockout risk).
+  Anycubic Gen 1/Gen 2 and Bambu Lab spools verified unaffected.
+- NTAG password-auth timeout raised 2 ms → 10 ms (same reader-timing fix as block reads in v1.0)
+- Firmware updates could fail with a CRC verification error when the image grew beyond the 112 KB
+  update slot; the build now enforces this limit at link time.
+
 ### v1.0 — 2026-05-22
 
 > Based on official Anycubic ACE firmware **v1.3.863**
