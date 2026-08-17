@@ -7,6 +7,14 @@ filament systems (ACE 1 Pro and ACE 2 Pro).
 
 ## ACE Flash Tool
 
+### v1.0.2 — 2026-08-17
+
+#### Fixed
+- Flashing failed with `update-failed` on printers running newer firmware (Kobra S1 after 2.7.x):
+  since 2.7 the printer expects a `model_id` field in the OTA request and rejects requests
+  without it. The tool now always sends the matching id (`40001` = ACE 1 Pro, `40002` = ACE 2 Pro,
+  derived from the selected firmware image). Firmware 2.6.x is unaffected.
+
 ### v1.0.1 — 2026-05-29
 
 #### Added
@@ -25,6 +33,33 @@ filament systems (ACE 1 Pro and ACE 2 Pro).
 ---
 
 ## CFW — ACE 2 Pro
+
+### v1.0.6 — 2026-08-17
+
+> Based on official stock firmware **V1.1.31**. Reports version `V1.0.0` to the printer
+> (kept intentionally low so cloud mode still offers the official firmware as a recovery image).
+
+#### Added
+- Debug firmware variant with NFC traces on the debug serial port (raw tag hex dump, per-parser
+  match trace) — same diagnostics as the ACE 1 Pro debug build, useful when reporting
+  unrecognized spools.
+
+#### Fixed
+- All NFC fixes from the ACE 1 Pro CFW v1.1 and v1.1.1 releases are now included
+  (see the ACE 1 Pro section below for details):
+  - Third-party NTAG spools (TigerTag, OpenSpool, …) are read without authentication first —
+    previously the Anycubic-password attempt silenced unprotected foreign tags and they were
+    never recognized.
+  - TigerTag parser rewritten against the official TigerTag spec (verified on the ACE 1 Pro
+    with a real tag).
+  - OpenSpool spec compliance: adaptive read size for larger tags, color without `#` prefix,
+    temperatures in string form (verified on the ACE 1 Pro with a real tag).
+- Firmware updates could fail with a CRC verification error when the image grew beyond the
+  update slot; the build now enforces the limit up front.
+
+> Note: these fixes are hardware-verified on the ACE 1 Pro; on the ACE 2 Pro the shared NFC
+> layer is identical but re-testing on real hardware is still pending. Anycubic and Bambu Lab
+> detection is unaffected by design (separate read paths).
 
 ### v1.0.4 — 2026-05-29
 
@@ -53,6 +88,24 @@ filament systems (ACE 1 Pro and ACE 2 Pro).
 ---
 
 ## CFW — ACE 1 Pro
+
+### v1.1.1 — 2026-08-17
+
+> Based on official Anycubic ACE firmware **v1.3.863**
+
+#### Fixed
+- **OpenSpool tags are now read reliably** (verified on real hardware with a community
+  198-byte OpenSpool tag):
+  - The reader previously fetched only the first 176 bytes of a tag. OpenSpool tags that carry
+    optional fields (bed temperatures, spool id, …) exceed that, were treated as truncated and
+    the spool never appeared. The read now adapts to the tag's declared memory size — the full
+    NTAG215 range is covered (OpenSpool supports NTAG215/216).
+  - Color is parsed as the OpenSpool spec defines it — `color_hex` **without** a `#` prefix.
+    Tags written with a leading `#` keep working.
+  - Temperatures are accepted in the spec's string form (`"min_temp": "220"`) as well as as
+    plain numbers. Bed temperatures are picked up too, when present.
+- Anycubic, Bambu Lab and TigerTag spools are unaffected by the larger read window
+  (unchanged read paths / window only grows for tags that declare more memory).
 
 ### v1.1 — 2026-07-23
 

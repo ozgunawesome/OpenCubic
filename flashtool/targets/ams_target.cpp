@@ -42,7 +42,12 @@ QByteArray AmsTarget::buildPayload(const FirmwareFile& fw,
     auto m = re.match(fw.name);
     QString version = m.hasMatch() ? m.captured(1) : QStringLiteral("1.0.0");
 
+    // Firmware >= 2.7.x requires a model_id field matching the connected hub
+    // (40001 = ACE Pro Gen1, 40002 = ACE 2 Pro).
+    const int modelId = (fw.target == FlashTarget::AceGen2) ? 40002 : 40001;
+
     QJsonObject data{
+        { QStringLiteral("model_id"),         modelId },
         { QStringLiteral("firmware_url"),     firmwareUrl },
         { QStringLiteral("firmware_name"),    fw.name },
         { QStringLiteral("firmware_version"), version },
