@@ -57,8 +57,8 @@ Full details: [docs/supported-spools.md](docs/supported-spools.md)
 | Anycubic Gen 2 | ✅ Confirmed |
 | Bambu Lab | ✅ Confirmed |
 | Elegoo | ✅ Implemented / untested |
-| TigerTag | ✅ Implemented / untested |
-| OpenSpool | ✅ Implemented / untested |
+| TigerTag | ✅ Confirmed |
+| OpenSpool | ✅ Confirmed |
 | OpenPrintTag (Prusa) | ✅ Implemented / untested |
 | QIDI | 🔄 Unknown AES keys |
 | Creality | 🔄 Unknown AES keys |
