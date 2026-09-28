@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(AceFlashTool VERSION 1.0.2 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -43,6 +45,17 @@ if(APPLE)
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.anycubic-cfw.AceFlashTool"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macos/Info.plist.in"
+    )
+
+    set(ACEFLASHTOOL_CODESIGN_IDENTITY "Apple Development: Ozgun Ayaz (9HRAY44VNW)"
+        CACHE STRING "Code-signing identity for AceFlashTool")
+    add_custom_command(TARGET AceFlashTool POST_BUILD
+        COMMAND codesign --force --sign "${ACEFLASHTOOL_CODESIGN_IDENTITY}"
+            --entitlements "${CMAKE_CURRENT_SOURCE_DIR}/macos/AceFlashTool.entitlements"
+            --timestamp=none
+            "$<TARGET_BUNDLE_DIR:AceFlashTool>"
+        COMMENT "Signing AceFlashTool.app"
+        VERBATIM
     )
 endif()
 

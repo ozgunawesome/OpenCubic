@@ -1,0 +1,18 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug AceFlashTool.app",
+			"type": "cppdbg",
+			"request": "launch",
+			"preLaunchTask": "CMake: Build",
+			"program": "${workspaceFolder}/build/AceFlashTool.app/Contents/MacOS/AceFlashTool",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb"
+		}
+	]
+}

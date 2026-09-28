@@ -12,7 +12,6 @@
 #else
 #include <openssl/evp.h>
 #endif
-#define HTTP_PORT 19010
 static QString prettyJson(const QByteArray& data)
 {
     auto doc = QJsonDocument::fromJson(data);
@@ -96,14 +95,16 @@ QByteArray Discovery::aes128CbcDecrypt(const QByteArray& cipher,
 
 Discovery::Discovery(QObject* parent) : QObject(parent) {}
 
-void Discovery::discover(const QString& ip)
+void Discovery::discover(const QString& ip, const uint64_t port)
 {
-    QNetworkRequest req{QUrl(QStringLiteral("https://%1:%2/info").arg(ip).arg(HTTP_PORT))};
+    auto url = QUrl(QStringLiteral("http://%1/info").arg(ip));
+    url.setPort(port);
+    QNetworkRequest req{url};
     req.setTransferTimeout(8000);
-    emit httpLog(QStringLiteral(">> GET %1:%2").arg(req.url().toString()).arg(HTTP_PORT));
+    emit httpLog(QStringLiteral(">> GET %1").arg(req.url().toString()));
     auto* reply = m_nam.get(req);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, ip]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, ip, port]() {
         reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             emit httpLog(QStringLiteral("<< ERR %1").arg(reply->errorString()));
@@ -120,18 +121,19 @@ void Discovery::discover(const QString& ip)
             emit error(QStringLiteral("Invalid /info token (length < 32)"));
             return;
         }
-        postCtrl(ip, token);
+        postCtrl(ip, port, token);
     });
 }
 
-void Discovery::postCtrl(const QString& ip, const QString& token)
+void Discovery::postCtrl(const QString& ip, const uint64_t port, const QString& token)
 {
     // sign = MD5( MD5(token[0:16]) + ts + nonce )
     QString ts    = QString::number(QDateTime::currentMSecsSinceEpoch());
     QString nonce = QString::number(QRandomGenerator::global()->bounded(1000000, 9999999));
     QString sign  = md5Hex((md5Hex(token.left(16).toLatin1()) + ts + nonce).toLatin1());
 
-    QUrl url(QStringLiteral("https://%1:%2/ctrl").arg(ip).arg(HTTP_PORT));
+    QUrl url(QStringLiteral("http://%1/ctrl").arg(ip));
+    url.setPort(port);
     QUrlQuery q;
     q.addQueryItem(QStringLiteral("ts"),    ts);
     q.addQueryItem(QStringLiteral("nonce"), nonce);
@@ -142,7 +144,7 @@ void Discovery::postCtrl(const QString& ip, const QString& token)
     QNetworkRequest req{url};
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     req.setTransferTimeout(8000);
-    emit httpLog(QStringLiteral(">> POST %1:%2").arg(url.toString()).arg(HTTP_PORT));
+    emit httpLog(QStringLiteral(">> POST %1").arg(url.toString()));
     auto* reply = m_nam.post(req, QByteArray{});
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, token]() {
