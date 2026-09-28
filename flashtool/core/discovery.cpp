@@ -7,18 +7,18 @@
 #include <QDateTime>
 #include <QRandomGenerator>
 #include <QCryptographicHash>
-
+#ifdef Q_OS_MACOS
+#include <CommonCrypto/CommonCryptor.h>
+#else
+#include <openssl/evp.h>
+#endif
+#define HTTP_PORT 19010
 static QString prettyJson(const QByteArray& data)
 {
     auto doc = QJsonDocument::fromJson(data);
     if (doc.isNull()) return QString::fromUtf8(data);
     return doc.toJson(QJsonDocument::Indented).trimmed();
 }
-// Windows BCrypt for AES-128-CBC
-#include <windows.h>
-#include <bcrypt.h>
-#pragma comment(lib, "Bcrypt.lib")
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 QString PrinterCredentials::mqttHost() const
@@ -41,62 +41,54 @@ QString Discovery::md5Hex(const QByteArray& data)
     return QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
 }
 
-// ── AES-128-CBC Decrypt via Windows BCrypt ────────────────────────────────────
+// ── AES-128-CBC Decrypt ───────────────────────────────────────────────────────
 
 QByteArray Discovery::aes128CbcDecrypt(const QByteArray& cipher,
                                         const QByteArray& key,
                                         const QByteArray& iv)
 {
-    // We need a writable IV copy (BCrypt modifies it)
+    if (cipher.isEmpty() || cipher.size() % 16 != 0)
+        return {};
+
     QByteArray ivCopy = iv.left(16).leftJustified(16, '\0');
     QByteArray keyCopy = key.left(16).leftJustified(16, '\0');
+    QByteArray plain(cipher.size() + 16, '\0');
 
-    BCRYPT_ALG_HANDLE  hAlg  = nullptr;
-    BCRYPT_KEY_HANDLE  hKey  = nullptr;
-    NTSTATUS           status;
-
-    status = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, nullptr, 0);
-    if (!BCRYPT_SUCCESS(status)) return {};
-
-    // Set CBC chaining mode
-    const wchar_t* cbcMode = BCRYPT_CHAIN_MODE_CBC;
-    BCryptSetProperty(hAlg, BCRYPT_CHAINING_MODE,
-                      (PUCHAR)cbcMode,
-                      (ULONG)((wcslen(cbcMode) + 1) * sizeof(wchar_t)), 0);
-
-    // Import the key
-    ULONG   keyObjLen = 0;
-    ULONG   cbResult  = 0;
-    BCryptGetProperty(hAlg, BCRYPT_OBJECT_LENGTH,
-                      (PUCHAR)&keyObjLen, sizeof(ULONG), &cbResult, 0);
-
-    QByteArray keyObj(keyObjLen, '\0');
-    status = BCryptGenerateSymmetricKey(
-        hAlg, &hKey,
-        (PUCHAR)keyObj.data(), keyObjLen,
-        (PUCHAR)keyCopy.data(), 16, 0);
-
-    if (!BCRYPT_SUCCESS(status)) {
-        BCryptCloseAlgorithmProvider(hAlg, 0);
+#ifdef Q_OS_MACOS
+    size_t plainLen = 0;
+    const CCCryptorStatus status = CCCrypt(
+        kCCDecrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding,
+        keyCopy.constData(), kCCKeySizeAES128,
+        ivCopy.constData(),
+        cipher.constData(), static_cast<size_t>(cipher.size()),
+        plain.data(), static_cast<size_t>(plain.size()), &plainLen);
+    if (status != kCCSuccess)
         return {};
-    }
+    plain.resize(static_cast<int>(plainLen));
+#else
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    if (!ctx)
+        return {};
 
-    // Decrypt
-    QByteArray plain(cipher.size(), '\0');
-    ULONG plainLen = 0;
-    status = BCryptDecrypt(
-        hKey,
-        (PUCHAR)cipher.constData(), (ULONG)cipher.size(),
-        nullptr,
-        (PUCHAR)ivCopy.data(), 16,
-        (PUCHAR)plain.data(), (ULONG)plain.size(),
-        &plainLen, BCRYPT_BLOCK_PADDING);
+    int decryptedLen = 0;
+    int finalLen = 0;
+    const bool success =
+        EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), nullptr,
+                           reinterpret_cast<const unsigned char*>(keyCopy.constData()),
+                           reinterpret_cast<const unsigned char*>(ivCopy.constData())) == 1 &&
+        EVP_DecryptUpdate(ctx,
+                          reinterpret_cast<unsigned char*>(plain.data()), &decryptedLen,
+                          reinterpret_cast<const unsigned char*>(cipher.constData()),
+                          cipher.size()) == 1 &&
+        EVP_DecryptFinal_ex(ctx,
+                            reinterpret_cast<unsigned char*>(plain.data()) + decryptedLen,
+                            &finalLen) == 1;
+    EVP_CIPHER_CTX_free(ctx);
 
-    BCryptDestroyKey(hKey);
-    BCryptCloseAlgorithmProvider(hAlg, 0);
-
-    if (!BCRYPT_SUCCESS(status)) return {};
-    plain.resize(plainLen);
+    if (!success)
+        return {};
+    plain.resize(decryptedLen + finalLen);
+#endif
     return plain;
 }
 
@@ -106,9 +98,9 @@ Discovery::Discovery(QObject* parent) : QObject(parent) {}
 
 void Discovery::discover(const QString& ip)
 {
-    QNetworkRequest req{QUrl(QStringLiteral("http://%1:18910/info").arg(ip))};
+    QNetworkRequest req{QUrl(QStringLiteral("https://%1:%2/info").arg(ip).arg(HTTP_PORT))};
     req.setTransferTimeout(8000);
-    emit httpLog(QStringLiteral(">> GET %1").arg(req.url().toString()));
+    emit httpLog(QStringLiteral(">> GET %1:%2").arg(req.url().toString()).arg(HTTP_PORT));
     auto* reply = m_nam.get(req);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, ip]() {
@@ -139,7 +131,7 @@ void Discovery::postCtrl(const QString& ip, const QString& token)
     QString nonce = QString::number(QRandomGenerator::global()->bounded(1000000, 9999999));
     QString sign  = md5Hex((md5Hex(token.left(16).toLatin1()) + ts + nonce).toLatin1());
 
-    QUrl url(QStringLiteral("http://%1:18910/ctrl").arg(ip));
+    QUrl url(QStringLiteral("https://%1:%2/ctrl").arg(ip).arg(HTTP_PORT));
     QUrlQuery q;
     q.addQueryItem(QStringLiteral("ts"),    ts);
     q.addQueryItem(QStringLiteral("nonce"), nonce);
@@ -150,7 +142,7 @@ void Discovery::postCtrl(const QString& ip, const QString& token)
     QNetworkRequest req{url};
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     req.setTransferTimeout(8000);
-    emit httpLog(QStringLiteral(">> POST %1").arg(url.toString()));
+    emit httpLog(QStringLiteral(">> POST %1:%2").arg(url.toString()).arg(HTTP_PORT));
     auto* reply = m_nam.post(req, QByteArray{});
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, token]() {

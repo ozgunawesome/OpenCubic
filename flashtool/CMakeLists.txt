@@ -7,16 +7,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Qt 5.15.2 msvc2019_64 — override with -DCMAKE_PREFIX_PATH=<path>
-if(NOT DEFINED CMAKE_PREFIX_PATH)
+# Qt 5.15.2 msvc2019_64 default for Windows; other platforms use their Qt install.
+if(WIN32 AND NOT DEFINED CMAKE_PREFIX_PATH)
     set(CMAKE_PREFIX_PATH "E:/Qt/5.15.2/msvc2019_64")
 endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network)
+if(NOT APPLE)
+    find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+endif()
 
 add_subdirectory(third_party)
 
-add_executable(AceFlashTool WIN32
+add_executable(AceFlashTool WIN32 MACOSX_BUNDLE
     main.cpp
     core/discovery.cpp
     core/firmware_file.cpp
@@ -33,6 +36,16 @@ add_executable(AceFlashTool WIN32
     ui/flash_widget.ui
 )
 
+if(APPLE)
+    set_target_properties(AceFlashTool PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "ACE Flash Tool"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.anycubic-cfw.AceFlashTool"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macos/Info.plist.in"
+    )
+endif()
+
 target_include_directories(AceFlashTool PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -43,8 +56,10 @@ target_link_libraries(AceFlashTool PRIVATE
     Qt5::Widgets
     Qt5::Network
     qmqtt
-    Bcrypt       # Windows AES-128-CBC for Discovery
 )
+if(NOT APPLE)
+    target_link_libraries(AceFlashTool PRIVATE OpenSSL::Crypto)
+endif()
 
 # OpenSSL 1.1.1 DLLs — not bundled with Qt 5.15 MSVC; typically found in Qt Creator's bin dir
 # Override with -DOPENSSL_SRC=<path> if your installation differs
