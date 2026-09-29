@@ -9,9 +9,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Qt 5.15.2 msvc2019_64 default for Windows; other platforms use their Qt install.
-if(WIN32 AND NOT DEFINED CMAKE_PREFIX_PATH)
-    set(CMAKE_PREFIX_PATH "E:/Qt/5.15.2/msvc2019_64")
+# Set this to the Qt installation that matches the selected target platform and architecture.
+set(ACEFLASHTOOL_QT_ROOT "" CACHE PATH "Architecture-matched Qt 5 installation")
+if(ACEFLASHTOOL_QT_ROOT)
+    list(PREPEND CMAKE_PREFIX_PATH "${ACEFLASHTOOL_QT_ROOT}")
 endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Network)
@@ -75,21 +76,34 @@ if(NOT APPLE)
     target_link_libraries(AceFlashTool PRIVATE OpenSSL::Crypto)
 endif()
 
-# OpenSSL 1.1.1 DLLs — not bundled with Qt 5.15 MSVC; typically found in Qt Creator's bin dir
-# Override with -DOPENSSL_SRC=<path> if your installation differs
-if(NOT DEFINED OPENSSL_SRC)
-    set(OPENSSL_SRC "E:/Qt/Tools/QtCreator/bin")
+# Windows OpenSSL runtime DLLs must match the selected target architecture.
+set(OPENSSL_SRC "" CACHE PATH "Directory containing target-architecture OpenSSL runtime DLLs")
+if(WIN32 AND NOT OPENSSL_SRC)
+    set(_windows_arch "${CMAKE_GENERATOR_PLATFORM}")
+    if(NOT _windows_arch)
+        set(_windows_arch "${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}")
+    endif()
+    if(NOT _windows_arch)
+        set(_windows_arch "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    if(NOT _windows_arch OR _windows_arch MATCHES "^(x64|x86_64|AMD64)$")
+        set(OPENSSL_SRC "E:/Qt/Tools/QtCreator/bin")
+    endif()
 endif()
-foreach(SSL_DLL libssl-1_1-x64.dll libcrypto-1_1-x64.dll)
-    if(EXISTS "${OPENSSL_SRC}/${SSL_DLL}")
+if(WIN32 AND OPENSSL_SRC)
+    file(GLOB OPENSSL_RUNTIME_DLLS
+        "${OPENSSL_SRC}/libssl*.dll"
+        "${OPENSSL_SRC}/libcrypto*.dll"
+    )
+    foreach(SSL_DLL IN LISTS OPENSSL_RUNTIME_DLLS)
+        get_filename_component(SSL_DLL_NAME "${SSL_DLL}" NAME)
         add_custom_command(TARGET AceFlashTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${OPENSSL_SRC}/${SSL_DLL}"
-                "$<TARGET_FILE_DIR:AceFlashTool>/${SSL_DLL}"
-            COMMENT "Deploying ${SSL_DLL}"
-        )
-    endif()
-endforeach()
+                "${SSL_DLL}"
+                "$<TARGET_FILE_DIR:AceFlashTool>/${SSL_DLL_NAME}"
+            COMMENT "Deploying ${SSL_DLL_NAME}")
+    endforeach()
+endif()
 
 # Copy Qt DLLs to output directory after build
 if(WIN32)

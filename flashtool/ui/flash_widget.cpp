@@ -105,7 +105,6 @@ void FlashWidget::updateFlashButton() {
   ui->btnFlash->setEnabled(m_fw.isValid() &&
                            (!mismatch || ui->cbOverride->isChecked()) &&
                            m_state == State::Ready && m_printerFree);
-  ui->cbOverride->setEnabled(ui->btnFlash->isEnabled());
 }
 
 void FlashWidget::resetToIdle(const QString &reason) {
@@ -342,6 +341,7 @@ void FlashWidget::onBrowseClicked() {
   m_fw = FirmwareFile::load(path);
   ui->labelFile->setText(m_fw.name);
   updateAceIdSpinner();
+  ui->cbOverride->setEnabled(true);
   updateFlashButton();
 }
 
