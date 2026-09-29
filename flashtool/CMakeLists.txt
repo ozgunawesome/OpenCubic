@@ -40,6 +40,7 @@ add_executable(AceFlashTool WIN32 MACOSX_BUNDLE
 
 if(APPLE)
     set_target_properties(AceFlashTool PROPERTIES
+        OUTPUT_NAME "${PROJECT_NAME}${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_NAME "ACE Flash Tool"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.anycubic-cfw.AceFlashTool"
@@ -54,7 +55,7 @@ if(APPLE)
             --entitlements "${CMAKE_CURRENT_SOURCE_DIR}/macos/AceFlashTool.entitlements"
             --timestamp=none
             "$<TARGET_BUNDLE_DIR:AceFlashTool>"
-        COMMENT "Signing AceFlashTool.app"
+        COMMENT "Signing ${PROJECT_NAME}${PROJECT_VERSION}.app"
         VERBATIM
     )
 endif()

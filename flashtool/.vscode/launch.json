@@ -6,7 +6,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"preLaunchTask": "CMake: Build",
-			"program": "${workspaceFolder}/build/AceFlashTool.app/Contents/MacOS/AceFlashTool",
+			"program": "${workspaceFolder}/build/AceFlashTool1.0.2.app/Contents/MacOS/AceFlashTool1.0.2",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
